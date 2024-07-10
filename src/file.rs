@@ -4,7 +4,7 @@ use windows_sys::Win32::Foundation::HANDLE;
 use windows_sys::Win32::Foundation::{GetLastError, FILETIME, NO_ERROR};
 use windows_sys::Win32::Storage::FileSystem::{
     GetFileInformationByHandle, GetFileType, BY_HANDLE_FILE_INFORMATION,
-    FILE_ATTRIBUTE_HIDDEN,
+    FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_RECALL_ON_OPEN, FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS,
 };
 
 use crate::AsHandleRef;
@@ -51,6 +51,12 @@ pub fn is_hidden(file_attributes: u64) -> bool {
     file_attributes & (FILE_ATTRIBUTE_HIDDEN as u64) > 0
 }
 
+/// Returns true if the given file attributes contains the
+/// `FILE_ATTRIBUTE_RECALL_ON_OPEN` or `FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS` attribute.
+pub fn is_online_only(file_attributes: u64) -> bool {
+    file_attributes & (FILE_ATTRIBUTE_RECALL_ON_OPEN | FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS) as u64 != 0
+}
+
 /// Represents file information such as creation time, file size, etc.
 ///
 /// This wraps a [`BY_HANDLE_FILE_INFORMATION`].
@@ -71,6 +77,12 @@ impl Information {
     /// `FILE_ATTRIBUTE_HIDDEN` attribute.
     pub fn is_hidden(&self) -> bool {
         is_hidden(self.file_attributes())
+    }
+
+    /// Returns true if this file information has the
+    /// `FILE_ATTRIBUTE_RECALL_ON_OPEN` or `FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS` attribute.
+    pub fn is_online_only(&self) -> bool {
+        is_online_only(self.file_attributes())
     }
 
     /// Return the creation time, if one exists.
