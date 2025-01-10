@@ -4,7 +4,9 @@ use windows_sys::Win32::Foundation::HANDLE;
 use windows_sys::Win32::Foundation::{GetLastError, FILETIME, NO_ERROR};
 use windows_sys::Win32::Storage::FileSystem::{
     GetFileInformationByHandle, GetFileType, BY_HANDLE_FILE_INFORMATION,
-    FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_RECALL_ON_OPEN, FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS,
+    FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_OFFLINE,
+    FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS, FILE_ATTRIBUTE_RECALL_ON_OPEN,
+    FILE_ATTRIBUTE_UNPINNED,
 };
 
 use crate::AsHandleRef;
@@ -54,7 +56,12 @@ pub fn is_hidden(file_attributes: u64) -> bool {
 /// Returns true if the given file attributes contains the
 /// `FILE_ATTRIBUTE_RECALL_ON_OPEN` or `FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS` attribute.
 pub fn is_online_only(file_attributes: u64) -> bool {
-    file_attributes & (FILE_ATTRIBUTE_RECALL_ON_OPEN | FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS) as u64 != 0
+    file_attributes
+        & (FILE_ATTRIBUTE_OFFLINE
+            | FILE_ATTRIBUTE_UNPINNED
+            | FILE_ATTRIBUTE_RECALL_ON_OPEN
+            | FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS) as u64
+        != 0
 }
 
 /// Represents file information such as creation time, file size, etc.
